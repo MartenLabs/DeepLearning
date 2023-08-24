@@ -1,0 +1,217 @@
+{
+  "main": {
+    "id": "4b2529dfdf696748",
+    "type": "split",
+    "children": [
+      {
+        "id": "f302bdf97cc7f8c4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b1d1b0d98d211dda",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "이론/BackPropagation/5. Vector Functions and Jacobians.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "ac383a23b8aa34be",
+    "type": "split",
+    "children": [
+      {
+        "id": "3777b0e031b5d89f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ae408dee8b0e0d75",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "5c95ac41f6ea1aa1",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "fae3d8288be35400",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          },
+          {
+            "id": "b62a8960ed7d022c",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 264.5
+  },
+  "right": {
+    "id": "3bbf5e3ce848314a",
+    "type": "split",
+    "children": [
+      {
+        "id": "4d236e80f6bff7d2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f31c87b5cac2c01b",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "이론/BackPropagation/5. Vector Functions and Jacobians.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "b25e1b60385f2744",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "이론/BackPropagation/5. Vector Functions and Jacobians.md",
+                "linksCollapsed": true,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "b6475f017f78f7f7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "aeca4e2ebbdd30bc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "이론/BackPropagation/5. Vector Functions and Jacobians.md"
+              }
+            }
+          },
+          {
+            "id": "5c0c57995a356a8d",
+            "type": "leaf",
+            "state": {
+              "type": "advanced-tables-toolbar",
+              "state": {}
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "canvas:새 캔버스 만들기": false,
+      "switcher:퀵 스위처 열기": false,
+      "graph:그래프 뷰 열기": false,
+      "daily-notes:오늘의 데일리 노트 열기": false,
+      "templates:템플릿 삽입": false,
+      "command-palette:명령어 팔레트 열기": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false
+    }
+  },
+  "active": "b1d1b0d98d211dda",
+  "lastOpenFiles": [
+    "이론/BackPropagation/4. Linear & Logistic Regression.md",
+    "이론/BackPropagation/3. Multivariate Functions and Jacobians.md",
+    "이론/BackPropagation/2. Basic Differentiation.md",
+    "이론/BackPropagation/5. Vector Functions and Jacobians.md",
+    "이론/Forwardpropagation/5. Convolutional Layer.md",
+    "이론/Forwardpropagation/4. Loss Function.md",
+    "Data/12.이론_Vector_Functions_and_Jacobians/32.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/31.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/30.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/29.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/28.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/27.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/26.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/24.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/25.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians/23.VF.png",
+    "Data/12.이론_Vector_Functions_and_Jacobians",
+    "이론/Forwardpropagation/1. Artificial Neurons.md",
+    "Data/11.이론_Linear_Logistic_Regression/20.LLR.mp4",
+    "이론/Forwardpropagation/7. Convolutional Neural Networks.md",
+    "논문/10. A Style-Based Generator Architecture for Generative Adversarial Networks.md",
+    "Data/11.이론_Linear_Logistic_Regression",
+    "이론/Forwardpropagation/3. Sigmoid and Softmax.md",
+    "Data/논문_StyleGAN",
+    "논문/9. Progressive Growing of GANs for Improved Quality, Stability and Variation.md",
+    "EBG_1.md",
+    "논문/8. Seeing the World through Your Eyes.md",
+    "이론/Forwardpropagation/2. Dense Layers.md",
+    "이론/Forwardpropagation/6. Pooling Layers.md",
+    "논문/5. Improved Training of Wasserstein GANs.md",
+    "용어/딥러닝 기본 용어2.md",
+    "용어/인공지능의 이해.md",
+    "용어/딥러닝 기본 용어1.md",
+    "논문/6. Energy-based GAN (EBGAN).md",
+    "용어/ChatGPT 가 알려주는 인공지능 용어.md",
+    "Data/논문_PGGAN",
+    "논문/1. Generative Adversarial Nets.md",
+    "논문/3. Least Squares Generative Adversarial Networks (LS-GANs).md",
+    "논문/2. Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks (ICLR 2016).md",
+    "논문/7. Boundary Equilibrium Generative Adversarial Networks (BEGAN).md",
+    "Data/10.이론_Multivariate Functions and Jacobians",
+    "Data/9.이론_Basic_Differentiation",
+    "Data/8.이론_WhyBackpropagation",
+    "이론/BackPropagation",
+    "이론/Forwardpropagation",
+    "무제 파일.canvas",
+    "무제 파일 1.canvas"
+  ]
+}
