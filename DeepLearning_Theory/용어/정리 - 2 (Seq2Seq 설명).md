@@ -6,7 +6,7 @@
 	- Decoder
 	- 모델 구현 및 코드 설명
 
-dddsdsdsdddwdfkrkskekakqkdw
+
 
 # Seq2Seq
 
