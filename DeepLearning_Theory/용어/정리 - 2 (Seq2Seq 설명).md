@@ -10,6 +10,8 @@
 
 # Seq2Seq
 
+![](../../Data/용어_정리_2/Seq2Seq1.png)
+
 ### 1. Embedding
 
 - **임베딩 행렬의 구조**
