@@ -134,4 +134,313 @@ $\Sigma ^{S^2}$ 에서 $S^2$ 은 전체 cell의 갯수 = 49 이고 B는 각 셀�
 
 ## 논문 구현 
 
-https://velog.io/@skhim520/YOLO-v1-%EB%85%BC%EB%AC%B8-%EB%A6%AC%EB%B7%B0-%EB%B0%8F-%EC%BD%94%EB%93%9C-%EA%B5%AC%ED%98%84
+kaggle datasets download -d aladdinpersson/pascalvoc-yolo
+
+#### Dataset 
+
+$Label_{cell} \; = \; [C_1, \; C_2, \; ..., \; C_{20}, \; p_c, \; x, \; y, \; w, \; h]$
+
+
+## model.py
+``` python
+
+import torch
+import torch.nn as nn
+
+architecture_config = [
+    # (kernel_size, filters, stride, padding) 
+    (7, 64, 2, 3),
+    "M", # Maxpooling2d
+    (3, 192, 1, 1),
+    "M",
+    (1, 128, 1, 0),
+    (3, 256, 1, 1),
+    (1, 256, 1, 0),
+    (3, 512, 1, 1),
+    "M",
+    [(1, 256, 1, 0), (3, 512, 1, 1), 4], # 첫번째 conv, 두번째 conv, 반복 횟수
+    (1, 512, 1, 0),
+    (3, 1024, 1, 1),
+    "M",
+    [(1, 512, 1, 0), (3, 1024, 1, 1), 2],
+    (3, 1024, 1, 1),
+    (3, 1024, 2, 1),
+    (3, 1024, 1, 1),
+    (3, 1024, 1, 1),
+]
+
+
+class CNNBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, **kwargs):
+        super(CNNBlock, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, bias=False, **kwargs)
+        self.batchnorm = nn.BatchNorm2d(out_channels)
+        self.leakyrelu = nn.LeakyReLU(0.1)
+
+    def forward(self, x):
+        return self.leakyrelu(self.batchnorm(self.conv(x)))
+
+
+class Yolov1(nn.Module):
+    def __init__(self, in_channels=3, **kwargs):
+        super(Yolov1, self).__init__()
+        self.architecture = architecture_config
+        self.in_channels = in_channels
+        self.darknet = self._create_conv_layers(self.architecture)
+        self.fcs = self._create_fcs(**kwargs)
+
+    def forward(self, x):
+        x = self.darknet(x)
+        return self.fcs(torch.flatten(x, start_dim=1))
+
+    def _create_conv_layers(self, architecture):
+        layers = []
+        in_channels = self.in_channels
+
+        for x in architecture:
+            if type(x) == tuple:
+                layers += [
+                    CNNBlock(
+                        in_channels, x[1], kernel_size=x[0], stride=x[2], padding=x[3],
+                    )
+                ]
+                in_channels = x[1]
+
+            elif type(x) == str:
+                layers += [nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))]
+
+            elif type(x) == list:
+                conv1 = x[0]
+                conv2 = x[1]
+                num_repeats = x[2]
+
+                for _ in range(num_repeats):
+                    layers += [
+                        CNNBlock(
+                            in_channels,
+                            conv1[1],
+                            kernel_size=conv1[0],
+                            stride=conv1[2],
+                            padding=conv1[3],
+                        )
+                    ]
+                    layers += [
+                        CNNBlock(
+                            conv1[1],
+                            conv2[1],
+                            kernel_size=conv2[0],
+                            stride=conv2[2],
+                            padding=conv2[3],
+                        )
+                    ]
+                    in_channels = conv2[1]
+
+        return nn.Sequential(*layers)
+
+    def _create_fcs(self, split_size, num_boxes, num_classes):
+        S, B, C = split_size, num_boxes, num_classes
+        return nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(1024 * S * S, 4096),
+            nn.Dropout(0.1),
+            nn.LeakyReLU(0.1),
+            nn.Linear(4096, S * S * (C + B * 5)), # 7 * 7 * (20 + 2 * 5) = 1,470
+        )
+```
+
+## Loss.py
+
+
+### YOLO 손실 함수의 구성 요소
+YOLO 손실 함수는 다음과 같이 네 가지 주요 부분으로 나뉜다:
+1. **박스 좌표 손실 (Box Coordinates Loss)**
+2. **객체 신뢰도 손실 (Object Confidence Loss)**
+3. **배경 신뢰도 손실 (No Object Confidence Loss)**
+4. **클래스 예측 손실 (Class Prediction Loss)**
+
+
+### 1. 박스 좌표 손실 (Box Coordinates Loss)
+
+$\lambda_{\text{coord}} \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{\text{obj}} [(x_i - \hat{x}_i)^2 + (y_i - \hat{y}_i)^2 + (\sqrt{w_i} - \sqrt{\hat{w}_i})^2 + (\sqrt{h_i} - \sqrt{\hat{h}_i})^2]$
+- 이 수식은 실제 박스와 예측 박스 간의 위치와 크기 차이를 계산합니다. 크기는 너비와 높이의 제곱근으로 계산된다.
+
+#### 코드 구현:
+```python
+predictions = predictions.reshape(-1, self.S, self.S, self.C + self.B * 5)
+
+# 각 예측된 바운딩 박스와 실제 바운딩 박스 간의 IoU(교차 영역 비율)을 계산
+iou_b1 = intersection_over_union(predictions[..., 21:25], target[..., 21:25])
+iou_b2 = intersection_over_union(predictions[..., 26:30], target[..., 21:25])
+
+ious = torch.cat([iou_b1.unsqueeze(0), iou_b2.unsqueeze(0)], dim=0)
+
+# 두 예측 중 IoU가 높은 박스를 선택
+iou_maxes, bestbox = torch.max(ious, dim=0)
+exists_box = target[..., 20].unsqueeze(3) # 실제 박스가 존재하는 위치
+
+box_predictions = exists_box * (
+    bestbox * predictions[..., 26:30] + (1 - bestbox) * predictions[..., 21:25]
+)
+box_targets = exists_box * target[..., 21:25]
+
+box_predictions[..., 2:4] = torch.sign(box_predictions[..., 2:4]) * torch.sqrt(
+    torch.abs(box_predictions[..., 2:4] + 1e-6)
+)
+box_targets[..., 2:4] = torch.sqrt(box_targets[..., 2:4])
+box_loss = self.mse(
+    torch.flatten(box_predictions, end_dim=-2),
+    torch.flatten(box_targets, end_dim=-2),
+)
+```
+- `box_predictions`와 `box_targets`에서 박스의 너비(w)와 높이(h)에 대해 제곱근을 취하는 것이 수식의 $\sqrt{w_i} - \sqrt{\hat{w}_i}$ 와 $\sqrt{h_i} - \sqrt{\hat{h}_i}$에 해당
+- 최종 `box_loss`는 이러한 차이들을 제곱하여 합산한 값
+
+
+
+### 2. 객체 신뢰도 손실 (Object Confidence Loss)
+
+$\sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{\text{obj}} (C_i - \hat{C}_i)^2$
+- 이 수식은 박스에 객체가 있을 때 그 박스의 신뢰도 차이를 계산
+
+#### 코드 구현:
+```python
+pred_box = (
+    bestbox * predictions[..., 25:26] + (1 - bestbox) * predictions[..., 20:21]
+)
+object_loss = self.mse(
+    torch.flatten(exists_box * pred_box),
+    torch.flatten(exists_box * target[..., 20:21]),
+)
+```
+- `pred_box`는 두 박스 예측 중 IoU가 높은 박스의 신뢰도 점수를 선택
+- `object_loss`는 실제 박스의 신뢰도(`target[..., 20:21]`)와 예측된 신뢰도(`pred_box`)의 차이를 MSE로 계산
+
+
+
+### 3. 배경 신뢰도 손실 (No Object Confidence Loss)
+
+$\lambda_{\text{noobj}} \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{\text{noobj}} (C_i - \hat{C}_i)^2$
+- 이 수식은 박스에 객체가 없을 때의 신뢰도 차이를 계산
+#### 코드 구현:
+```python
+no_object_loss = self.mse(
+    torch.flatten((1 - exists_box) * predictions[..., 20:21], start_dim=1),
+    torch.flatten((1 - exists_box) * target[..., 20:21], start_dim=1),
+)
+no_object_loss += self.mse(
+    torch.flatten((1 - exists_box) * predictions[..., 25:26], start_dim=1),
+    torch.flatten((1 - exists_box) * target[..., 20:21], start_dim=1)
+)
+```
+- 객체가 없는 경우(`(1 - exists_box)`)에 대한 신뢰도 차이를 두 예측값(predictions[..., 20:21]과 predictions[..., 25:26])에 대해 각각 계산
+
+
+
+### 4. 클래스 예측 손실 (Class Prediction Loss)
+
+$\sum_{i=0}^{S^2} \mathbb{1}_i^{\text{obj}} \sum_{c \in \text{classes}} (p_i(c) - \hat{p}_i(c))^2$
+- 이 수식은 객체가 있는 박스의 클래스 예측 오류를 계산
+#### 코드 구현:
+```python
+class_loss = self.mse(
+    torch.flatten(exists_box * predictions[..., :20], end_dim=-2),
+    torch.flatten(exists_box * target[..., :20], end_dim=-2),
+)
+```
+- `class_loss`는 실제 클래스 레이블(`target[..., :20]`)과 예측된 클래스 레이블(`predictions[..., :20]`)의 차이를 MSE로 계산
+
+
+``` python
+import torch
+import torch.nn as nn
+from utils import intersection_over_union
+
+
+class YoloLoss(nn.Module):
+    """
+    YOLO 모델(v1)의 손실을 계산하기 위한 클래스입니다.
+    """
+    def __init__(self, S=7, B=2, C=20):
+        super(YoloLoss, self).__init__()
+        self.mse = nn.MSELoss(reduction="sum")  # MSE 손실 함수를 초기화합니다.
+
+        # S, B, C는 각각 이미지를 나누는 그리드의 크기, 바운딩 박스의 수, 클래스의 수를 의미합니다.
+        self.S = S
+        self.B = B
+        self.C = C
+
+        # 논문에서 제안된 손실 가중치입니다.
+        self.lambda_noobj = 0.5  # 객체가 없는 박스의 손실 가중치
+        self.lambda_coord = 5    # 박스 좌표의 손실 가중치
+
+    def forward(self, predictions, target):
+        # 예측 값과 실제 값을 입력받아 손실을 계산합니다.
+        # 예측 값은 (BATCH_SIZE, S*S*(C+B*5))의 형태로 입력됩니다.
+        predictions = predictions.reshape(-1, self.S, self.S, self.C + self.B * 5)
+
+        # 각 예측된 바운딩 박스와 실제 바운딩 박스 간의 IoU(교차 영역 비율)을 계산합니다.
+        iou_b1 = intersection_over_union(predictions[..., 21:25], target[..., 21:25])
+        iou_b2 = intersection_over_union(predictions[..., 26:30], target[..., 21:25])
+        ious = torch.cat([iou_b1.unsqueeze(0), iou_b2.unsqueeze(0)], dim=0)
+
+        # 두 예측 중 IoU가 높은 박스를 선택합니다.
+        iou_maxes, bestbox = torch.max(ious, dim=0)
+        exists_box = target[..., 20].unsqueeze(3)  # 실제 박스가 존재하는 위치
+
+        # 박스 좌표에 대한 손실 계산:
+        # 최대 IoU를 가진 예측 박스만 사용하여 손실을 계산합니다.
+        box_predictions = exists_box * (
+            bestbox * predictions[..., 26:30] + (1 - bestbox) * predictions[..., 21:25]
+        )
+        box_targets = exists_box * target[..., 21:25]
+
+        # 박스의 너비와 높이의 제곱근을 취합니다.
+        box_predictions[..., 2:4] = torch.sign(box_predictions[..., 2:4]) * torch.sqrt(
+            torch.abs(box_predictions[..., 2:4] + 1e-6)
+        )
+        box_targets[..., 2:4] = torch.sqrt(box_targets[..., 2:4])
+
+        # 박스 좌표의 손실을 MSE로 계산합니다.
+        box_loss = self.mse(
+            torch.flatten(box_predictions, end_dim=-2),
+            torch.flatten(box_targets, end_dim=-2),
+        )
+
+        # 객체가 존재하는 박스의 신뢰도 손실:
+        pred_box = (
+            bestbox * predictions[..., 25:26] + (1 - bestbox) * predictions[..., 20:21]
+        )
+        object_loss = self.mse(
+            torch.flatten(exists_box * pred_box),
+            torch.flatten(exists_box * target[..., 20:21]),
+        )
+
+        # 객체가 없는 박스의 손실:
+        no_object_loss = self.mse(
+            torch.flatten((1 - exists_box) * predictions[..., 20:21], start_dim=1),
+            torch.flatten((1 - exists_box) * target[..., 20:21], start_dim=1),
+        )
+        no_object_loss += self.mse(
+            torch.flatten((1 - exists_box) * predictions[..., 25:26], start_dim=1),
+            torch.flatten((1 - exists_box) * target[..., 20:21], start_dim=1)
+        )
+
+        # 클래스 예측 손실:
+        class_loss = self.mse(
+            torch.flatten(exists_box * predictions[..., :20], end_dim=-2),
+            torch.flatten(exists_box * target[..., :20], end_dim=-2),
+        )
+
+        # 총 손실은 각 손실에 대한 가중치를 적용하여 합산합니다.
+        loss = (
+            self.lambda_coord * box_loss  # 박스 좌표 손실
+            + object_loss  # 객체 손실
+            + self.lambda_noobj * no_object_loss  # 객체 없음 손실
+            + class_loss  # 클래스 손실
+        )
+
+        return loss
+```
+
+
+
