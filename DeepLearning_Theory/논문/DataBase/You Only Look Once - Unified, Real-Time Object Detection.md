@@ -24,7 +24,7 @@
 
 기존의 객체 인식 시스템은 이미지 내에서 분류해야하는 객체를 탐색하는 방법과, 탐색한 객체를 실제로 분류하는 모델이 구분되어 있었다. 각각의 모델을 따로 학습하여야하는 만큼, 학습 파이프라인이 느리고 최적화가 어려운 단점이 있었다.
 
-![|700](Data/DataBase/논문_Yolo/1.png)
+![|700](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/1.png)
 
 논문은 위 그림과 같이 하나의 모델만으로 객체가 존재할법한 다양한 bounding box 에서의 분류를 동시에 수행한다. 단 한번만 이미지를 참조하기에, 논문에서 제시하는 모델의 이름은 YOLO(You Only Look Once)라 부른다. 해당 모델의 장점은 다음과 같다.
 
@@ -40,13 +40,13 @@
 
 YOLO 는 전체 이미지로부터 Bounding box 와 box 의 class 를 동시에 예측한다.
 
-![|700](Data/DataBase/논문_Yolo/2.png)
+![|700](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/2.png)
 
 이를 위해 먼저 입력 이미지를 S*S 크기의 격자로 구분합니다. 각 격자는 bounding boxes B와 각 box 에 대한 신뢰 점수를 예측한다. 해당 점수는 박스안에 객체가 존재할 확률과, 박스가 실제 박스와 겹치는 정도(intersection over union, IOU) 를 곱하여 계산한다. ($Pr(Object)∗IOU^{truth}_{pred}$)
 
 각각의 bounding box 는 x,y,w,h,신뢰도로 구성된다. (x,y)는 grid cell의 경계를 기준으로 한 box의 중심 좌표이며, 너비와 높이 전체 이미지를 기준으로 한다. 신뢰도는 예측된 box와 ground truth box 사이의 IOU를 나타낸다.
 
-또한 각 grid cell은 C 개의 class 에 대한 조건부 확률 $Pr(Class_i|Object)$을 예측한다. 이 때, bounding box 의 갯수 B 에 관계 없이 grid cell 당 한 번의 예측만 수행한다.
+또한 각 grid cell은 C 개의 class 에 대한 조건부 확률 $Pr(Class_i\vert Object)$을 예측한다. 이 때, bounding box 의 갯수 B 에 관계 없이 grid cell 당 한 번의 예측만 수행한다.
 
 테스트 진행시에는 조건부 확률에 개별 박스의 신뢰도 예측을 곱하여, Box 별 class 신뢰도를 계산한다. 테스트 데이터셋은 Pascal VOC 를 사용하였다.
 
@@ -54,7 +54,7 @@ YOLO 는 전체 이미지로부터 Bounding box 와 box 의 class 를 동시에 
 
 ## Network Design
 
-![|900](Data/DataBase/논문_Yolo/3.png)
+![|900](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/3.png)
 
 GoogLeNet 모델을 기반으로 하되, inception module 을 간소화된 형태로 교체하여 사용한다. 위 그림과 같이 Image Feature 를 추출하는 24개의 Conv Layer 와, 예측을 수행하는 2개의 Fully Connected Layer 로 구성된다.
 
@@ -84,7 +84,7 @@ YOLO 는 grid cell 당 여러개의 bounding box predictor 가 존재한다. 논
 
 학습시 사용하는 loss function 은 아래와 같다.
 
-![|600](Data/DataBase/논문_Yolo/4.png)
+![|600](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/4.png)
 
 - 첫번째 항 : Object가 존재하는 grid cell i의 predictor bounding box j에 대해 x,y의 loss를 계산한다.
 - 두번째 항 : Object가 존재하는 grid cell i의 predictor bounding box j에 대해 w,h의 loss를 계산한다.
@@ -124,7 +124,7 @@ Bounding box 의 크기가 달라지는 경우에도 loss 가 동일하여, 작�
 
 ### Comparison to Other Real-Time Systems
 
-![|600](Data/DataBase/논문_Yolo/5.png)
+![|600](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/5.png)
 
 일반적인 영상은 30FPS(Frame Per Second) 로 촬영하므로, 이를 기준으로 실시간 처리가 가능한지를 나눈다. 실시간 처리가 가능한 모델을 기준으로, Fast YOLO 는 가장 빠르면서도 두번째로 높은 성능(mAP)을 보였으며, YOLO 는 가장 높은 mAP를 달성했다.
 
@@ -140,7 +140,7 @@ Bounding box 의 크기가 달라지는 경우에도 loss 가 동일하여, 작�
 - Other : class 오답, IOU > 0.1
 - Background : 모든 객체에 대해서 IOU < 0.1
 
-![|600](Data/DataBase/논문_Yolo/6.png)
+![|600](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/6.png)
 
 YOLO 는 기존 최고 성능 모델(Fast R-CNN)과 비교하였을 때 Localization Error 가 크고 많은 비중을 차지한다. 반면 Background Error 는 훨신 적은 비중을 차지하며, 전체 이미지를 전역적으로 파악하여 객체와 배경을 용이하게 구분해냈음을 강조한다.
 
@@ -148,7 +148,7 @@ YOLO 는 기존 최고 성능 모델(Fast R-CNN)과 비교하였을 때 Localiza
 
 ### Combining Fast R-CNN and YOLO
 
-![|600](Data/DataBase/논문_Yolo/7.png)
+![|600](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/7.png)
 
 
 YOLO 의 낮은 Background error 를 활용할 수 있도록, Fast R-CNN 과 YOLO 를 ensemble 한 모델을 검증한다. 단독 모델로 성능이 더 높은 다른 모델을 ensemble 한 경우보다, YOLO 를 결합하였을 때 더 성능이 높아지는 것을 확인할 수 있다. 또한, YOLO는 빠르게 구동할 수 있으므로, 결합 모델의 연산 속도는 Fast R-CNN 만을 연산하는 속도와 비슷하다.
@@ -157,7 +157,7 @@ YOLO 의 낮은 Background error 를 활용할 수 있도록, Fast R-CNN 과 YOL
 
 ### VOC 2012 Results
 
-![|800](Data/DataBase/논문_Yolo/8.png)
+![|800](https://tera.dscloud.me:8080/Images/DataBase/논문_Yolo/8.png)
 
 PASCAL 2012 데이터셋에서의 성능을 비교한 결과이다. Fast R-CNN + YOLO 모델이 일부 class 에서 높은 점수를 달성하였다. 
 또한, YOLO 단독으로는 실시간 모델임에도 불구하고 VGG-16을 사용한 R-CNN 과 비슷한 성능을 달성하였다.
