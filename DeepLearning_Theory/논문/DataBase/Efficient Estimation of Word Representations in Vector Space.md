@@ -8,6 +8,7 @@
 | Year(출판년도)         | 2013                                                |
 | 저자                 | Tomas Mikolov, Kai Chen, Greg Corrado, Jeffrey Dean |
 | 원문 링크              | [word2vec](https://arxiv.org/abs/1301.3781)         |
+|                    |                                                     |
 
 ---
 
